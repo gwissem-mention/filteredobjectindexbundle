@@ -12,6 +12,9 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 class CelltrakFilteredObjectIndexExtension extends Extension
 {
 
+    const CLASS_NS = 'Celltrak\FilteredObjectIndexBundle';
+
+
     public function load(array $configs, ContainerBuilder $container)
     {
         $processor = new Processor();
@@ -20,11 +23,33 @@ class CelltrakFilteredObjectIndexExtension extends Extension
             $configs
         );
 
+        $tenantNamespace = $config['tenant_namespace'];
 
-
-
+        foreach ($config['index_groups'] as $groupName => $groupConfig) {
+            $serviceId = "celltrak_filtered_object_index.{$groupName}.group";
+            $def = $this->getIndexGroupDefinition(
+                $groupName,
+                $groupConfig,
+                $tenantNamespace
+            );
+            $container->setDefinition($serviceId, $def);
+        }
     }
 
+    protected function getIndexGroupDefintion(
+        $groupName,
+        array $groupConfig,
+        $tenantNamespace = null
+    ) {
+        $class = self::CLASS_NS . '\Component\Index\FilteredObjectIndexGroup';
+        $args = [
+            $groupName,
+            new Reference($groupConfig['redis_client']),
+            $groupConfig['object_lock_ttl'],
+            $tenantNamespace
+        ];
 
+        return new Definition($class, $args);
+    }
 
 }
