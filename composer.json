@@ -10,11 +10,16 @@
         }
     ],
     "require": {
-        "php": ">=5.4"
+        "php": ">=5.4",
+        "celltrak/redis-bundle": "^1.1"
     },
     "autoload": {
         "psr-4": { "Celltrak\\FilteredObjectIndexBundle\\": "" }
     },
     "repositories": [
+        {
+            "type": "vcs",
+            "url":  "git@bitbucket.org:celltrakdev/celltrakredisbundle.git"
+        }
     ]
 }
