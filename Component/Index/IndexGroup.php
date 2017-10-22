@@ -2,8 +2,10 @@
 namespace Celltrak\FilteredObjectIndexBundle\Component\Index;
 
 use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
+use Celltrak\RedisBundle\Component\Multi\Multi;
 
-class FilteredObjectIndexGroup
+
+class IndexGroup
 {
 
     const KEY_ROOT = 'foi';
