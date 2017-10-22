@@ -1,6 +1,7 @@
 <?php
 namespace Celltrak\FilteredObjectIndexBundle\Component\Set;
 
+use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
 use Celltrak\RedisBundle\Component\Multi\Pipeline;
 
 
@@ -17,14 +18,12 @@ class PersistedSet extends BaseSet
     protected $persistedSetKey;
 
     /**
-     * @param FilteredObjectIndexManager $indexManager
+     * @param CelltrakRedis $redis
      * @param string $persistedSetKey
      */
-    public function __construct(
-        FilteredObjectIndexManager $indexManager,
-        $persistedSetKey
-    ) {
-        parent::__construct($indexManager);
+    public function __construct(CelltrakRedis $redis, $persistedSetKey)
+    {
+        parent::__construct($redis);
 
         $this->persistedSetKey = $persistedSetKey;
     }
@@ -37,9 +36,7 @@ class PersistedSet extends BaseSet
         if ($this->hasLoadedObjectIds()) {
             $objectCount = count($this->objectIds);
         } else {
-            $objectCount = $this->indexManager
-                ->getRedis()
-                ->sCard($this->persistedSetKey);
+            $objectCount = $this->redis->sCard($this->persistedSetKey);
         }
 
         return $objectCount;
@@ -62,9 +59,10 @@ class PersistedSet extends BaseSet
         if ($this->hasLoadedObjectIds()) {
             $hasObject = in_array($objectId, $this->objectIds);
         } else {
-            $hasObject = $this->indexManager
-                ->getRedis()
-                ->sIsMember($this->persistedSetKey, $objectId);
+            $hasObject = $this->redis->sIsMember(
+                $this->persistedSetKey,
+                $objectId
+            );
         }
 
         return $hasObject;
@@ -93,9 +91,7 @@ class PersistedSet extends BaseSet
      */
     protected function loadObjectIds()
     {
-        $this->objectIds = $this->indexManager
-            ->getRedis()
-            ->sMembers($this->persistedSetKey) ?: [];
+        $this->objectIds = $this->redis->sMembers($this->persistedSetKey) ?: [];
     }
 
 }
