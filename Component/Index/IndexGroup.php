@@ -1,6 +1,9 @@
 <?php
 namespace Celltrak\FilteredObjectIndexBundle\Component\Index;
 
+use Celltrak\FilteredObjectIndexBundle\Component\Set\IntersectionSet;
+use Celltrak\FilteredObjectIndexBundle\Component\Set\PersistedSet;
+use Celltrak\FilteredObjectIndexBundle\Component\Set\UnionSet;
 use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
 use Celltrak\RedisBundle\Component\Multi\Multi;
 
@@ -198,7 +201,7 @@ class IndexGroup
      * @param string $index
      * @param mixed $filter
      *
-     * @return FilteredObjectIndexPersistedSet
+     * @return PersistedSet
      */
     public function getPersistedSet($index, $filter = null)
     {
@@ -208,27 +211,27 @@ class IndexGroup
             $setKey = $this->getIndexGlobalSetKey($index);
         }
 
-        return new FilteredObjectIndexPersistedSet($this->indexManager, $setKey);
+        return new PersistedSet($this->redis, $setKey);
     }
 
     /**
      * Creates UNION set using this group's index manager.
      *
-     * @return FilteredObjectIndexUnionSet
+     * @return UnionSet
      */
     public function createUnion()
     {
-        return new FilteredObjectIndexUnionSet($this->indexManager);
+        return new UnionSet($this->redis);
     }
 
     /**
      * Creates INTERSECTION set using this group's index manager.
      *
-     * @return FilteredObjectIndexIntersectionSet
+     * @return IntersectionSet
      */
     public function createIntersection()
     {
-        return new FilteredObjectIndexIntersectionSet($this->indexManager);
+        return new IntersectionSet($this->redis);
     }
 
     public function createSetForGroupedFilters(
