@@ -1,9 +1,10 @@
 <?php
 namespace Celltrak\FilteredObjectIndexBundle\Component\Set;
 
+use Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException;
 use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
 use Celltrak\RedisBundle\Component\Multi\Pipeline;
-use CTLib\Util\Util;
+
 
 /**
  * Calculation-based set that uses either UNION or INTERSECTION.
@@ -236,7 +237,7 @@ abstract class CalculatedSet extends BaseSet
      */
     protected function getTemporarySetKey()
     {
-        return Util::guid();
+        return md5(uniqid());
     }
 
 }

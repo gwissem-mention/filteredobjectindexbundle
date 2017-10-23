@@ -4,6 +4,7 @@ namespace Celltrak\FilteredObjectIndexBundle\Component\Index;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\IntersectionSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\PersistedSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\UnionSet;
+use Celltrak\FilteredObjectIndexBundle\Exception\LockedObjectException;
 use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
 use Celltrak\RedisBundle\Component\Multi\Multi;
 
