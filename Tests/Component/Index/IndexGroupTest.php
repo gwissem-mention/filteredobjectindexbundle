@@ -1,14 +1,13 @@
 <?php
 namespace Celltrak\FilteredObjectIndexBundle\Tests\Component\Index;
 
+use Celltrak\FilteredObjectIndexBundle\Tests\FilteredObjectIndexTestCase;
+use Celltrak\FilteredObjectIndexBundle\Component\Index\IndexGroup;
+use Celltrak\FilteredObjectIndexBundle\Component\Set\UnionSet;
+use Celltrak\FilteredObjectIndexBundle\Component\Set\IntersectionSet;
 
-use CTLib\Component\FilteredObjectIndex\FilteredObjectIndexGroup;
-use CTLib\Component\FilteredObjectIndex\FilteredObjectIndexUnionSet;
-use CTLib\Component\FilteredObjectIndex\FilteredObjectIndexIntersectionSet;
-use CTLib\Component\FilteredObjectIndex\LockedObjectException;
 
-
-class FilteredObjectIndexGroupTest extends FilteredObjectIndexSetTestCase
+class IndexGroupTest extends FilteredObjectIndexTestCase
 {
 
     const KEY_OBJECT_SALT_LOCK = 'food:obj:salt:lock';
@@ -18,7 +17,7 @@ class FilteredObjectIndexGroupTest extends FilteredObjectIndexSetTestCase
     {
         parent::setUp();
 
-        $this->group = new FilteredObjectIndexGroup($this->indexManager, 'food');
+        $this->group = new IndexGroup('food', $this->redis);
     }
 
 
@@ -59,7 +58,7 @@ class FilteredObjectIndexGroupTest extends FilteredObjectIndexSetTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\LockedObjectException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\LockedObjectException
      */
     public function testAddObjectExceedsLockWaitTimeout()
     {
@@ -120,7 +119,7 @@ class FilteredObjectIndexGroupTest extends FilteredObjectIndexSetTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\LockedObjectException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\LockedObjectException
      */
     public function testRemoveObjectFromIndexExceedsLockWaitTimeout()
     {
@@ -223,7 +222,7 @@ class FilteredObjectIndexGroupTest extends FilteredObjectIndexSetTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\LockedObjectException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\LockedObjectException
      */
     public function testMoveObjectExceedsLockWaitTimeout()
     {
@@ -246,14 +245,14 @@ class FilteredObjectIndexGroupTest extends FilteredObjectIndexSetTestCase
     {
         $union = $this->group->createUnion();
 
-        $this->assertInstanceOf(FilteredObjectIndexUnionSet::class, $union);
+        $this->assertInstanceOf(UnionSet::class, $union);
     }
 
     public function testCreateIntersection()
     {
         $inter = $this->group->createIntersection();
 
-        $this->assertInstanceOf(FilteredObjectIndexIntersectionSet::class, $inter);
+        $this->assertInstanceOf(IntersectionSet::class, $inter);
     }
 
 

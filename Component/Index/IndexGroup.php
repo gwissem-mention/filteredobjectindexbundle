@@ -14,13 +14,15 @@ class IndexGroup
 
     const KEY_ROOT = 'foi';
 
+    const DEFAULT_OBJECT_LOCK_TTL = 5;
+
     const OBJECT_LOCK_WAIT_TIMEOUT = 3;
 
 
     public function __construct(
         $groupName,
         CelltrakRedis $redis,
-        $objectLockTtl,
+        $objectLockTtl = self::DEFAULT_OBJECT_LOCK_TTL,
         $tenantNamespace = null
     ) {
         $this->groupName        = $groupName;

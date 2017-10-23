@@ -57,12 +57,6 @@ class FilteredObjectIndexTestCase extends \PHPUnit_Framework_TestCase
         $loggerMock = $this->getMockBuilder(Logger::class)
             ->disableOriginalConstructor()
             ->getMock();
-
-        $this->indexManager = new FilteredObjectIndexManager(
-            $this->redis,
-            $loggerMock,
-            'test'
-        );
     }
 
     protected function tearDown()
