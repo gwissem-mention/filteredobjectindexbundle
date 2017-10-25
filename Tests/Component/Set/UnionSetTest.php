@@ -8,6 +8,8 @@ use Celltrak\FilteredObjectIndexBundle\Component\Set\CalculatedSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\UnionSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\IntersectionSet;
 use Celltrak\FilteredObjectIndexBundle\Tests\FilteredObjectIndexTestCase;
+use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
+
 
 class UnionSetTest extends FilteredObjectIndexTestCase
 {
@@ -28,17 +30,13 @@ class UnionSetTest extends FilteredObjectIndexTestCase
             $this->redis,
             'astronomicalbodies'
         );
-
-
     }
-
 
     public function testCreateUnion()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
 
-        $this->assertInstanceOf(FilteredObjectIndexSet::class, $union);
-        $this->assertInstanceOf(FilteredObjectIndexCalculatedSet::class, $union);
+        $this->assertInstanceOf(CalculatedSet::class, $union);
 
         $includedSets = $union->getIncludedSets();
 
@@ -48,7 +46,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testAddOneSet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
 
         $result = $union->addSet($this->planets);
         $this->assertEquals($union, $result);
@@ -61,7 +59,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testAddMultipleSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
 
         $result = $union->addSet($this->planets, $this->romanGods);
         $this->assertEquals($union, $result);
@@ -79,32 +77,23 @@ class UnionSetTest extends FilteredObjectIndexTestCase
      */
     public function testAddInvalidSet()
     {
-        $loggerMock = $this->getMockBuilder(Logger::class)
+        $redisMock = $this->getMockBuilder(CelltrakRedis::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $invalidIndexManager = new FilteredObjectIndexManager(
-            $this->redis,
-            $loggerMock,
-            'test'
-        );
+        $invalidSet = new PersistedSet($redisMock, 'foo');
 
-        $invalidSet = new FilteredObjectIndexPersistedSet(
-            $invalidIndexManager,
-            'foo'
-        );
-
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $result = $union->addSet($this->planets, $invalidSet);
     }
 
     public function testUnion()
     {
-        $u1 = new FilteredObjectIndexUnionSet($this->indexManager);
+        $u1 = new UnionSet($this->redis);
         $u1->addSet($this->planets, $this->romanGods);
         $u2 = $u1->union($this->astronomicalBodies);
 
-        $this->assertInstanceOf(FilteredObjectIndexUnionSet::class, $u2);
+        $this->assertInstanceOf(UnionSet::class, $u2);
 
         $includedSets = $u2->getIncludedSets();
         $this->assertEquals($u1, $includedSets[0]);
@@ -113,11 +102,11 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testIntersect()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $inter = $union->intersect($this->astronomicalBodies);
 
-        $this->assertInstanceOf(FilteredObjectIndexIntersectionSet::class, $inter);
+        $this->assertInstanceOf(IntersectionSet::class, $inter);
 
         $includedSets = $inter->getIncludedSets();
         $this->assertEquals($union, $includedSets[0]);
@@ -125,17 +114,17 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\NoIncludedSetsException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */
     public function testCountWithNoIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         count($union);
     }
 
     public function testCountWithOneIncludedSet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets);
 
         $this->assertEquals(count(self::PLANETS), count($union));
@@ -143,7 +132,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testCountWithMultipleIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
 
         $this->assertEquals(
@@ -154,7 +143,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testCountWithIncludedEmptySet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods, $this->emptySet);
 
         $this->assertEquals(
@@ -164,17 +153,17 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\NoIncludedSetsException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */
     public function testGetObjectIdsWithNoIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->getObjectIds();
     }
 
     public function testGetObjectIdsWithOneIncludedSet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets);
         $objectIds = $union->getObjectIds();
 
@@ -184,7 +173,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testGetObjectIdsWithMultipleIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $objectIds = $union->getObjectIds();
 
@@ -197,7 +186,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testGetObjectIdsWithIncludedEmptySet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods, $this->emptySet);
         $objectIds = $union->getObjectIds();
 
@@ -210,7 +199,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testGetObjectIdsWithNestedUnion()
     {
-        $innerUnion = new FilteredObjectIndexUnionSet($this->indexManager);
+        $innerUnion = new UnionSet($this->redis);
         $innerUnion->addSet($this->planets, $this->romanGods);
 
         $outerUnion = $innerUnion->union($this->astronomicalBodies);
@@ -229,7 +218,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testGetObjectIdsWithNestedIntersection()
     {
-        $inter = new FilteredObjectIndexIntersectionSet($this->indexManager);
+        $inter = new IntersectionSet($this->redis);
         $inter->addSet($this->planets, $this->romanGods);
 
         $union = $inter->union($this->astronomicalBodies);
@@ -250,17 +239,17 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\NoIncludedSetsException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */
     public function testHasObjectWithNoIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->hasObject('foo');
     }
 
     public function testHasObjectWithOneIncludedSet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets);
 
         $this->assertTrue($union->hasObject('venus'));
@@ -269,7 +258,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testHasObjectWithMultipleIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
 
         $this->assertTrue($union->hasObject('venus'));
@@ -279,7 +268,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testHasObjectWithIncludedEmptySet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods, $this->emptySet);
 
         $this->assertTrue($union->hasObject('venus'));
@@ -288,19 +277,19 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\NoIncludedSetsException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */
     public function testInitializeForCalculationWithNoIncludedSets()
     {
         $pipeline = $this->redis->createPipeline();
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->initializeForCalculation($pipeline);
     }
 
     public function testInitializeForCalculationWithMultipleIncludedSets()
     {
         $pipeline = $this->redis->createPipeline();
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $union->initializeForCalculation($pipeline);
 
@@ -320,29 +309,26 @@ class UnionSetTest extends FilteredObjectIndexTestCase
         );
         $this->assertEquals(
             $calls[1]->getParameters()[1],
-            FilteredObjectIndexCalculatedSet::TEMPORARY_KEY_TTL
+            CalculatedSet::TEMPORARY_KEY_TTL
         );
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\NoIncludedSetsException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */
     public function testPersistWithNoIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->persist();
     }
 
     public function testPersistWithMultipleIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $persistedSet = $union->persist();
 
-        $this->assertInstanceOf(
-            FilteredObjectIndexPersistedSet::class,
-            $persistedSet
-        );
+        $this->assertInstanceOf(PersistedSet::class, $persistedSet);
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
@@ -352,10 +338,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
         $setKey = $persistedSet->getPersistedSetKey();
         unset($persistedSet);
 
-        $persistedSet = new FilteredObjectIndexPersistedSet(
-            $this->indexManager,
-            $setKey
-        );
+        $persistedSet = new PersistedSet($this->redis, $setKey);
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
@@ -367,14 +350,11 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testPersistWithIncludedEmptySet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods, $this->emptySet);
         $persistedSet = $union->persist();
 
-        $this->assertInstanceOf(
-            FilteredObjectIndexPersistedSet::class,
-            $persistedSet
-        );
+        $this->assertInstanceOf(PersistedSet::class, $persistedSet);
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
@@ -384,10 +364,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
         $setKey = $persistedSet->getPersistedSetKey();
         unset($persistedSet);
 
-        $persistedSet = new FilteredObjectIndexPersistedSet(
-            $this->indexManager,
-            $setKey
-        );
+        $persistedSet = new PersistedSet($this->redis, $setKey);
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
@@ -400,14 +377,11 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testPersistWithExplicitName()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $persistedSet = $union->persist('foo');
 
-        $this->assertInstanceOf(
-            FilteredObjectIndexPersistedSet::class,
-            $persistedSet
-        );
+        $this->assertInstanceOf(PersistedSet::class, $persistedSet);
 
         $this->assertEquals('foo', $persistedSet->getPersistedSetKey());
 
@@ -418,10 +392,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
         unset($persistedSet);
 
-        $persistedSet = new FilteredObjectIndexPersistedSet(
-            $this->indexManager,
-            'foo'
-        );
+        $persistedSet = new PersistedSet($this->redis, 'foo');
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
@@ -432,78 +403,49 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     }
 
     /**
-     * @expectedException CTLib\Component\FilteredObjectIndex\NoIncludedSetsException
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */
     public function testPersistTemporaryWithNoIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->persistTemporary();
     }
 
     public function testPersistTemporaryWithMultipleIncludedSets()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $persistedSet = $union->persistTemporary();
 
-        $this->assertInstanceOf(
-            FilteredObjectIndexTemporarySet::class,
-            $persistedSet
-        );
+        $this->assertInstanceOf(TemporarySet::class, $persistedSet);
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
             $persistedSet->getObjectIds()
         );
-
-        $setKey = $persistedSet->getPersistedSetKey();
-        unset($persistedSet);
-
-        $persistedSet = new FilteredObjectIndexPersistedSet(
-            $this->indexManager,
-            $setKey
-        );
-
-        $this->assertEquals([], $persistedSet->getObjectIds());
     }
 
     public function testPersistTemporaryWithIncludedEmptySet()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods, $this->emptySet);
         $persistedSet = $union->persistTemporary();
 
-        $this->assertInstanceOf(
-            FilteredObjectIndexTemporarySet::class,
-            $persistedSet
-        );
+        $this->assertInstanceOf(TemporarySet::class, $persistedSet);
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
             $persistedSet->getObjectIds()
         );
-
-        $setKey = $persistedSet->getPersistedSetKey();
-        unset($persistedSet);
-
-        $persistedSet = new FilteredObjectIndexPersistedSet(
-            $this->indexManager,
-            $setKey
-        );
-
-        $this->assertEquals([], $persistedSet->getObjectIds());
     }
 
     public function testPersistTemporaryWithTtl()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $persistedSet = $union->persistTemporary(null, 90);
 
-        $this->assertInstanceOf(
-            FilteredObjectIndexTemporarySet::class,
-            $persistedSet
-        );
+        $this->assertInstanceOf(TemporarySet::class, $persistedSet);
 
         $this->assertEqualArrayValues(
             $this->getUniqueValues(self::PLANETS, self::ROMAN_GODS),
@@ -517,7 +459,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testIterator()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
 
         $objectIds = [];
@@ -534,7 +476,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testJsonSerialize()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         $objectIds = json_decode(json_encode($union));
 
@@ -547,7 +489,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
 
     public function testDestruct()
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this->planets, $this->romanGods);
         unset($union);
 
