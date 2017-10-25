@@ -9,16 +9,61 @@ use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
 use Celltrak\RedisBundle\Component\Multi\Multi;
 
 
+/**
+ * Defines a group of filtered object indexes contextually related to each other.
+ */
 class IndexGroup
 {
-
+    /**
+     * @var string
+     * Prefix for all group Redis keys.
+     */
     const KEY_ROOT = 'foi';
 
+    /**
+     * @var integer
+     * Default number of seconds before an object write lock expires.
+     */
     const DEFAULT_OBJECT_LOCK_TTL = 5;
 
+    /**
+     * @var integer
+     * Number of seconds before giving up on acquiring an object's write lock.
+     */
     const OBJECT_LOCK_WAIT_TIMEOUT = 3;
 
 
+    /**
+     * @var string
+     * Name of index group.
+     */
+    protected $groupName;
+
+    /**
+     * @var CelltrakRedis
+     * Redis client used by this group.
+     */
+    protected $redis;
+
+    /**
+     * @var integer
+     * Number of seconds before an object write lock expires.
+     */
+    protected $objectLockTtl;
+
+    /**
+     * @var string
+     * Namespace to prevent key collisions when used in a multi-tenant setup.
+     */
+    protected $tenantNamespace;
+
+
+    /**
+     * @param string $groupName
+     * @param CelltrakRedis $redis
+     * @param integer $objectLockTtl
+     * @param string $tenantNamespace
+     */
     public function __construct(
         $groupName,
         CelltrakRedis $redis,

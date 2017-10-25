@@ -26,7 +26,7 @@ class CelltrakFilteredObjectIndexExtension extends Extension
         $tenantNamespace = $config['tenant_namespace'];
 
         foreach ($config['index_groups'] as $groupName => $groupConfig) {
-            $serviceId = "celltrak_filtered_object_index.{$groupName}.group";
+            $serviceId = "celltrak_filtered_object_index.{$groupName}_group";
             $def = $this->createIndexGroupDefinition(
                 $groupName,
                 $groupConfig,
