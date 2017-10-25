@@ -2,6 +2,7 @@
 namespace Celltrak\FilteredObjectIndexBundle\Tests\Component\Set;
 
 
+use Celltrak\FilteredObjectIndexBundle\Component\Set\BaseSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\PersistedSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\TemporarySet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\CalculatedSet;
@@ -36,6 +37,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     {
         $union = new UnionSet($this->redis);
 
+        $this->assertInstanceOf(BaseSet::class, $inter);
         $this->assertInstanceOf(CalculatedSet::class, $union);
 
         $includedSets = $union->getIncludedSets();
