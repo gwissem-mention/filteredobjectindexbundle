@@ -37,7 +37,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     {
         $union = new UnionSet($this->redis);
 
-        $this->assertInstanceOf(BaseSet::class, $inter);
+        $this->assertInstanceOf(BaseSet::class, $union);
         $this->assertInstanceOf(CalculatedSet::class, $union);
 
         $includedSets = $union->getIncludedSets();

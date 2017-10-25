@@ -26,7 +26,7 @@ abstract class BaseSet
 
 
     /**
-     * @param FilteredObjectIndexManager $indexManager
+     * @param CelltrakRedis $redis
      */
     public function __construct(CelltrakRedis $redis)
     {
@@ -65,14 +65,12 @@ abstract class BaseSet
     /**
      * Creates an INTERSECTION with another Set.
      *
-     * @param FilteredObjectIndexSet $otherSet
-     * @return FilteredObjectIndexIntersectionSet
+     * @param BaseSet $otherSet
+     * @return IntersectionSet
      */
-    public function intersect(FilteredObjectIndexSet $otherSet)
+    public function intersect(BaseSet $otherSet)
     {
-        $intersection = new FilteredObjectIndexIntersectionSet(
-            $this->indexManager
-        );
+        $intersection = new IntersectionSet($this->redis);
         $intersection->addSet($this, $otherSet);
         return $intersection;
     }
@@ -80,12 +78,12 @@ abstract class BaseSet
     /**
      * Creates a UNION with another Set.
      *
-     * @param FilteredObjectIndexSet $otherSet
-     * @return FilteredObjectIndexUnionSet
+     * @param BaseSet $otherSet
+     * @return UnionSet
      */
-    public function union(FilteredObjectIndexSet $otherSet)
+    public function union(BaseSet $otherSet)
     {
-        $union = new FilteredObjectIndexUnionSet($this->indexManager);
+        $union = new UnionSet($this->redis);
         $union->addSet($this, $otherSet);
         return $union;
     }

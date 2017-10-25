@@ -881,7 +881,7 @@ class IndexGroup
             $qualifiedKey .= ":{$this->tenantNamespace}";
         }
 
-        $qualifiedKey .= "{$this->groupName}:{$key}";
+        $qualifiedKey .= ":{$this->groupName}:{$key}";
         return $qualifiedKey;
     }
 

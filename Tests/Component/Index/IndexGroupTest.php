@@ -10,7 +10,7 @@ use Celltrak\FilteredObjectIndexBundle\Component\Set\IntersectionSet;
 class IndexGroupTest extends FilteredObjectIndexTestCase
 {
 
-    const KEY_OBJECT_SALT_LOCK = 'food:obj:salt:lock';
+    const KEY_OBJECT_SALT_LOCK = 'foi:food:obj:salt:lock';
 
 
     protected function setUp()
