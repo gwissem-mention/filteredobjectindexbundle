@@ -2,6 +2,7 @@
 namespace Celltrak\FilteredObjectIndexBundle\Component\Set;
 
 use Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException;
+use Celltrak\FilteredObjectIndexBundle\Exception\InvalidSetException;
 use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
 use Celltrak\RedisBundle\Component\Multi\Pipeline;
 
@@ -34,16 +35,18 @@ abstract class CalculatedSet extends BaseSet
     }
 
     /**
-     * Adds set(s) to include in calculation.
+     * Adds Set(s) to include in calculation.
      *
      * @param BaseSet ...$sets
      * @return CalculatedSet Returns $this.
+     * @throws InvalidSetException If any of the passed Sets use a different
+     *                              Redis client than this Set.
      */
     public function addSet(BaseSet ...$sets)
     {
         foreach ($sets as $set) {
             if ($this->sharesRedisWithSet($set) == false) {
-                throw new \InvalidArgumentException("Set doesn't share redis");
+                throw new InvalidSetException("Set doesn't share redis client");
             }
 
             $this->includedSets[] = $set;

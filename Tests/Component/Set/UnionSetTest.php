@@ -74,8 +74,7 @@ class UnionSetTest extends FilteredObjectIndexTestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Set doesn't share index manager
+     * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\InvalidSetException
      */
     public function testAddInvalidSet()
     {
