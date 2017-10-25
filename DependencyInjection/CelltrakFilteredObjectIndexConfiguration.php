@@ -27,7 +27,7 @@ class CelltrakFilteredObjectIndexConfiguration implements ConfigurationInterface
                             ->scalarNode('redis_client')
                                 ->info('Service ID of Redis client')
                                 ->isRequired()
-                                ->cannotBeNull()
+                                ->cannotBeEmpty()
                             ->end()
                             ->integerNode('object_lock_ttl')
                                 ->info('Number of seconds to hold an object lock during write operations')
