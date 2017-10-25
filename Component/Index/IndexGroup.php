@@ -358,7 +358,7 @@ class IndexGroup
     protected function acquireObjectLock($objectId)
     {
         $lockKey = $this->getObjectLockKey($objectId);
-        $params = ['NX', 'EX' => self::OBJECT_LOCK_TTL];
+        $params = ['NX', 'EX' => $this->objectLockTtl];
         $result = $this->redis->set($lockKey, 1, $params);
         return $result;
     }

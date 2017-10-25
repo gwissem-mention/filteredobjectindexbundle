@@ -1,5 +1,5 @@
 <?php
-namespace Celltrak\FilteredObjectIndex\Component\Set;
+namespace Celltrak\FilteredObjectIndexBundle\Component\Set;
 
 use Celltrak\RedisBundle\Component\Client\CelltrakRedis;
 use Celltrak\RedisBundle\Component\Multi\Pipeline;
