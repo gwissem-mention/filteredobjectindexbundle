@@ -1,6 +1,7 @@
 <?php
 namespace Celltrak\FilteredObjectIndexBundle\Component\Index;
 
+use Celltrak\FilteredObjectIndexBundle\Component\Query\GroupedFilterQuery;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\IntersectionSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\PersistedSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\UnionSet;
@@ -282,64 +283,54 @@ class IndexGroup
         return new IntersectionSet($this->redis);
     }
 
-    public function createSetForGroupedFilters(
-        $index,
-        GroupedFilterSet $filterSet
-    ) {
-        switch (count($filterSet)) {
+    public function createSetForIndexFilters($index, array $filters)
+    {
+        switch (count($filters)) {
             case 0:
-                return $this->getPersistedSet($index);
+                $set = $this->getPersistedSet($index);
+                break;
 
             case 1:
-                $union = $this->createUnion();
-                $filters = $filterSet->current();
-
-                foreach ($filters as $filter) {
-                    $union->addSet($this->getPersistedSet($index, $filter));
-                }
-                return $union;
+                $set = $this->getPersistedSet($index, current($filters));
+                break;
 
             default:
-                $inter = $this->createIntersection();
-
-                foreach ($filterSet as $filterGroupId => $filters) {
-                    if (count($filters) == 1) {
-                        $inter->add($this->getPersistedSet($index, $filter));
-                    } else {
-                        $union = $this->createUnion();
-                        foreach ($filters as $filter) {
-                            $union->addSet($this->getPersistedSet($index, $filter));
-                        }
-                        $inter->addSet($union);
-                    }
+                $set = $this->createUnion();
+                foreach ($filters as $filter) {
+                    $set->addSet($this->getPersistedSet($index, $filter));
                 }
-                return $inter;
+                break;
         }
+
+        return $set;
     }
 
-    /**
-     * Returns objects in index.
-     *
-     * @param string $index
-     * @param GroupedFilterSet $filterSet   Retrieves objects that only match
-     *                                      specified groups + filters.
-     * @return array  [$objectId, ...]
-     */
-    public function getObjectsInIndex($index, GroupedFilterSet $filterSet = null)
-    {
-        if (!$filterSet || count($filterSet) == 0) {
-            // Not filtering; simply return objects in global.
-            return $this->getObjectsInIndexGlobal($index);
+    public function createSetForGroupedFilterQuery(
+        $index,
+        GroupedFilterQuery $query
+    ) {
+        switch ($query->getGroupCount()) {
+            case 0:
+                $set = $this->getPersistedSet($index);
+                break;
+
+            case 1:
+                $filters = $query->current();
+                $set = $this->createSetForIndexFilters($index, $filters);
+                break;
+
+            default:
+                $set = $this->createIntersection();
+
+                foreach ($query as $filters) {
+                    $set->addSet(
+                        $this->createSetForIndexFilters($index, $filters)
+                    );
+                }
+                break;
         }
 
-        if (count($filterSet) == 1) {
-            // Filtering for a single filter group only. Run simple UNION.
-            $filters = $filterSet->current();
-            return $this->getObjectsInIndexFilters($index, $filters);
-        }
-
-        // Filtering with multiple filter groups. Run UNIONs and INTERSECTIONs.
-        return $this->getObjectsInIndexGroupedFilters($index, $filterSet);
+        return $set;
     }
 
     /**
@@ -724,84 +715,6 @@ class IndexGroup
     ) {
         $indexFilterKey = $this->getIndexFilterSetKey($index, $filter);
         $multi->sRem($indexFilterKey, $objectId);
-    }
-
-    /**
-     * Returns objects in index's "global" filter.
-     *
-     * @param string $index
-     *
-     * @return array  [$objectId, ...]
-     */
-    protected function getObjectsInIndexGlobal($index)
-    {
-        $objectIds = [];
-        $indexGlobalKey = $this->getIndexGlobalSetKey($index);
-        $iterator = null;
-
-        while ($iObjectIds = $this->redis->sScan($indexGlobalKey, $iterator)) {
-            $objectIds = array_merge($objectIds, $iObjectIds);
-        }
-        return $objectIds;
-    }
-
-    /**
-     * Returns objects in any of the specified index's filters.
-     *
-     * @param string $index
-     * @param array $filters
-     *
-     * @return array   [$objectId, ...]
-     */
-    protected function getObjectsInIndexFilters($index, array $filters)
-    {
-        $indexKeys = $this->getIndexFilterSetKeys($index, $filters);
-        return $this->redis->sUnion(...$indexKeys);
-    }
-
-    /**
-     * Returns objects in index for specified filter set.
-     *
-     * @param string $index
-     * @param GroupedFilterSet $filterSet
-     *
-     * @return array [$objectId, ...]
-     */
-    protected function getObjectsInIndexGroupedFilters(
-        $index,
-        GroupedFilterSet $filterSet
-    ) {
-        $intersectionKeys = [];
-        $tmpUnionKeys = [];
-
-        $this->redis->multi(\Redis::PIPELINE);
-
-        foreach ($filterSet as $filterGroupId => $filters) {
-            if (count($filters) == 1) {
-                // Since only a single filter for this filter group, we just
-                // need to record this index key for the ultimate INTERSECTION.
-                $indexKey = $this->getIndexFilterSetKey($index, $filters[0]);
-                $intersectionKeys[] = $indexKey;
-            } else {
-                // Since multiple filters for same filter group, we need to
-                // store UNION of all objects in filters in temporary key.
-                $tmpUnionKey = $this->generateRandomKey();
-                $indexKeys = $this->getIndexFilterSetKeys($index, $filters);
-                $this->redis->sUnionStore($tmpUnionKey, ...$indexKeys);
-
-                $intersectionKeys[] = $tmpUnionKey;
-                $tmpUnionKeys[] = $tmpUnionKey;
-            }
-        }
-
-        $this->redis->sInter(...$intersectionKeys);
-        $this->redis->del($tmpUnionKeys);
-        $results = $this->redis->exec();
-
-        // Only interested in the SINTER result from the overall pipeline
-        // results.
-        $intersectionIndex = count($results) - 2;
-        return $results[$intersectionIndex];
     }
 
     /**
