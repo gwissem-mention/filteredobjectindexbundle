@@ -241,6 +241,20 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         $this->assertTrue($this->group->isObjectInIndex('salt', 'recipe'));
     }
 
+    public function testCreateUnionOfIndexFilters()
+    {
+        $this->group->addObjectToIndex('salt', 'recipe', ['dinner','dessert']);
+        $this->group->addObjectToIndex('sugar', 'recipe', ['dessert']);
+        $this->group->addObjectToIndex('spam', 'recipe');
+
+        $union = $this->group->createUnionOfIndexFilters('recipe', ['dinner', 'dessert']);
+
+        $this->assertEqualArrayValues(
+            ['salt', 'sugar'],
+            $union->getObjectIds()
+        );
+    }
+
     public function testCreateUnion()
     {
         $union = $this->group->createUnion();
