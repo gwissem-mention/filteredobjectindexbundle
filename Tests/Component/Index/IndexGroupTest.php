@@ -3,6 +3,8 @@ namespace Celltrak\FilteredObjectIndexBundle\Tests\Component\Index;
 
 use Celltrak\FilteredObjectIndexBundle\Tests\FilteredObjectIndexTestCase;
 use Celltrak\FilteredObjectIndexBundle\Component\Index\IndexGroup;
+use Celltrak\FilteredObjectIndexBundle\Component\Query\GroupedFilterQuery;
+use Celltrak\FilteredObjectIndexBundle\Component\Set\PersistedSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\UnionSet;
 use Celltrak\FilteredObjectIndexBundle\Component\Set\IntersectionSet;
 
@@ -286,5 +288,68 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         $this->assertInstanceOf(IntersectionSet::class, $inter);
     }
 
+    public function testEmptyGroupedFilterQuery()
+    {
+        $this->group->addObjectToIndex('salt', 'recipe', ['dinner','dessert']);
+        $this->group->addObjectToIndex('sugar', 'recipe', ['dessert']);
+        $this->group->addObjectToIndex('spam', 'recipe');
+
+        $query = new GroupedFilterQuery;
+
+        $resultSet = $this->group->createSetForIndexGroupedFilterQuery(
+            'recipe',
+            $query
+        );
+
+        $this->assertInstanceOf(PersistedSet::class, $resultSet);
+        $this->assertEqualArrayValues(
+            ['salt', 'sugar', 'spam'],
+            $resultSet->getObjectIds()
+        );
+    }
+
+    public function testSingleGroupedFilterQuery()
+    {
+        $this->group->addObjectToIndex('salt', 'recipe', ['dinner','dessert']);
+        $this->group->addObjectToIndex('sugar', 'recipe', ['dessert']);
+        $this->group->addObjectToIndex('spam', 'recipe');
+
+        $query = new GroupedFilterQuery;
+        $query->addGroupedFilters('dessert', 'dinner');
+
+        $resultSet = $this->group->createSetForIndexGroupedFilterQuery(
+            'recipe',
+            $query
+        );
+
+        $this->assertInstanceOf(UnionSet::class, $resultSet);
+        $this->assertEqualArrayValues(
+            ['salt', 'sugar'],
+            $resultSet->getObjectIds()
+        );
+    }
+
+    public function testMultipleGroupedFilterQuery()
+    {
+        $this->group->addObjectToIndex('salt', 'recipe', ['dinner','dessert']);
+        $this->group->addObjectToIndex('sugar', 'recipe', ['dessert']);
+        $this->group->addObjectToIndex('apple', 'recipe', ['organic']);
+        $this->group->addObjectToIndex('spam', 'recipe');
+
+        $query = new GroupedFilterQuery;
+        $query->addGroupedFilters('dinner', 'organic');
+        $query->addGroupedFilters('dessert');
+
+        $resultSet = $this->group->createSetForIndexGroupedFilterQuery(
+            'recipe',
+            $query
+        );
+
+        $this->assertInstanceOf(IntersectionSet::class, $resultSet);
+        $this->assertEqualArrayValues(
+            ['salt'],
+            $resultSet->getObjectIds()
+        );
+    }
 
 }

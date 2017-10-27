@@ -271,6 +271,26 @@ class IndexGroup
     }
 
     /**
+     * Creates UNION set using this group's index manager.
+     *
+     * @return UnionSet
+     */
+    public function createUnion()
+    {
+        return new UnionSet($this->redis);
+    }
+
+    /**
+     * Creates INTERSECTION set using this group's index manager.
+     *
+     * @return IntersectionSet
+     */
+    public function createIntersection()
+    {
+        return new IntersectionSet($this->redis);
+    }
+
+    /**
      * Returns Set containing UNION of objects assigned to index filters.
      *
      * @param string $index
@@ -305,50 +325,40 @@ class IndexGroup
     }
 
     /**
-     * Creates UNION set using this group's index manager.
+     * Creates Set based on index and GroupedFilterQuery.
+     * NOTE: Will run UNION for each set of grouped filters and INTERSECTION
+     * across groups.
      *
-     * @return UnionSet
-     */
-    public function createUnion()
-    {
-        return new UnionSet($this->redis);
-    }
-
-    /**
-     * Creates INTERSECTION set using this group's index manager.
+     * @param string $index
+     * @param GroupedFilterQuery $query
      *
-     * @return IntersectionSet
+     * @return BaseSet $resultSet
      */
-    public function createIntersection()
-    {
-        return new IntersectionSet($this->redis);
-    }
-
     public function createSetForIndexGroupedFilterQuery(
         $index,
         GroupedFilterQuery $query
     ) {
         switch ($query->getGroupCount()) {
             case 0:
-                $set = $this->getIndexGlobalSet($index);
+                $resultSet = $this->getIndexGlobalSet($index);
                 break;
 
             case 1:
                 $filters = $query->current();
-                $set = $this->createUnionOfIndexFilters($index, $filters);
+                $resultSet = $this->createUnionOfIndexFilters($index, $filters);
                 break;
 
             default:
-                $set = $this->createIntersection();
+                $resultSet = $this->createIntersection();
 
                 foreach ($query as $filters) {
                     $union = $this->createUnionOfIndexFilters($index, $filters);
-                    $set->addSet($union);
+                    $resultSet->addSet($union);
                 }
                 break;
         }
 
-        return $set;
+        return $resultSet;
     }
 
     /**
