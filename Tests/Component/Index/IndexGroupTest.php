@@ -333,12 +333,14 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
     {
         $this->group->addObjectToIndex('salt', 'recipe', ['dinner','dessert']);
         $this->group->addObjectToIndex('sugar', 'recipe', ['dessert']);
-        $this->group->addObjectToIndex('apple', 'recipe', ['organic']);
+        $this->group->addObjectToIndex('apple', 'recipe', ['fruit', 'dessert']);
+        $this->group->addObjectToIndex('carrot', 'recipe', ['vegetable','dinner']);
+        $this->group->addObjectToIndex('kale', 'recipe', ['vegetable','dinner']);
         $this->group->addObjectToIndex('spam', 'recipe');
 
         $query = new GroupedFilterQuery;
-        $query->addGroupedFilters('dinner', 'organic');
-        $query->addGroupedFilters('dessert');
+        $query->addGroupedFilters('dinner', 'vegetable');
+        $query->addGroupedFilters('dessert', 'fruit');
 
         $resultSet = $this->group->createSetForIndexGroupedFilterQuery(
             'recipe',
