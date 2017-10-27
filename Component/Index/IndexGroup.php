@@ -271,7 +271,12 @@ class IndexGroup
     }
 
     /**
+     * Returns Set containing UNION of objects assigned to index filters.
      *
+     * @param string $index
+     * @param array $filters
+     *
+     * @return UnionSet
      */
     public function createUnionOfIndexFilters($index, array $filters)
     {
@@ -283,7 +288,12 @@ class IndexGroup
     }
 
     /**
+     * Returns Set containing INTERSECTION of objects assigned to index filters.
      *
+     * @param string $index
+     * @param array $filters
+     *
+     * @return IntersectionSet
      */
     public function createIntersectionOfIndexFilters($index, array $filters)
     {
