@@ -245,22 +245,53 @@ class IndexGroup
     }
 
     /**
-     * Returns persisted set instance for specified index and optional filter.
+     * Returns Set containing objects asssigned to index.
+     *
+     * @param string $index
+     * @return PersistedSet
+     */
+    public function getIndexGlobalSet($index)
+    {
+        $setKey = $this->getIndexGlobalSetKey($index);
+        return new PersistedSet($this->redis, $setKey);
+    }
+
+    /**
+     * Returns Set containing objects assigned to index + filter.
      *
      * @param string $index
      * @param mixed $filter
      *
      * @return PersistedSet
      */
-    public function getPersistedSet($index, $filter = null)
+    public function getIndexFilterSet($index, $filter)
     {
-        if ($filter) {
-            $setKey = $this->getIndexFilterSetKey($index, $filter);
-        } else {
-            $setKey = $this->getIndexGlobalSetKey($index);
-        }
-
+        $setKey = $this->getIndexFilterSetKey($index, $filter);
         return new PersistedSet($this->redis, $setKey);
+    }
+
+    /**
+     *
+     */
+    public function createUnionOfIndexFilters($index, array $filters)
+    {
+        $union = $this->createUnion();
+        foreach ($filters as $filter) {
+            $union->addSet($this->getIndexFilterSet($index, $filter));
+        }
+        return $union;
+    }
+
+    /**
+     *
+     */
+    public function createIntersectionOfIndexFilters($index, array $filters)
+    {
+        $intersection = $this->createIntersection();
+        foreach ($filters as $filter) {
+            $intersection->addSet($this->getIndexFilterSet($index, $filter));
+        }
+        return $intersection;
     }
 
     /**
@@ -283,49 +314,26 @@ class IndexGroup
         return new IntersectionSet($this->redis);
     }
 
-    public function createSetForIndexFilters($index, array $filters)
-    {
-        switch (count($filters)) {
-            case 0:
-                $set = $this->getPersistedSet($index);
-                break;
-
-            case 1:
-                $set = $this->getPersistedSet($index, current($filters));
-                break;
-
-            default:
-                $set = $this->createUnion();
-                foreach ($filters as $filter) {
-                    $set->addSet($this->getPersistedSet($index, $filter));
-                }
-                break;
-        }
-
-        return $set;
-    }
-
-    public function createSetForGroupedFilterQuery(
+    public function createSetForIndexGroupedFilterQuery(
         $index,
         GroupedFilterQuery $query
     ) {
         switch ($query->getGroupCount()) {
             case 0:
-                $set = $this->getPersistedSet($index);
+                $set = $this->getIndexGlobalSet($index);
                 break;
 
             case 1:
                 $filters = $query->current();
-                $set = $this->createSetForIndexFilters($index, $filters);
+                $set = $this->createUnionOfIndexFilters($index, $filters);
                 break;
 
             default:
                 $set = $this->createIntersection();
 
                 foreach ($query as $filters) {
-                    $set->addSet(
-                        $this->createSetForIndexFilters($index, $filters)
-                    );
+                    $union = $this->createUnionOfIndexFilters($index, $filters);
+                    $set->addSet($union);
                 }
                 break;
         }
@@ -715,15 +723,6 @@ class IndexGroup
     ) {
         $indexFilterKey = $this->getIndexFilterSetKey($index, $filter);
         $multi->sRem($indexFilterKey, $objectId);
-    }
-
-    /**
-     * Generates random Redis key in group's namespace.
-     * @return string
-     */
-    protected function generateRandomKey()
-    {
-        return $this->qualifyKey(md5(uniqid()));
     }
 
     /**

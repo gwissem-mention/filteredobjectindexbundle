@@ -32,7 +32,7 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
             $this->group->getIndexesWithObject('salt')
         );
         $this->assertTrue(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
     }
 
@@ -47,13 +47,13 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
             $this->group->getIndexesWithObject('salt')
         );
         $this->assertTrue(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
         $this->assertTrue(
-            $this->group->getPersistedSet('recipe', 'dessert')->hasObject('salt')
+            $this->group->getIndexFilterSet('recipe', 'dessert')->hasObject('salt')
         );
         $this->assertTrue(
-            $this->group->getPersistedSet('recipe', 'dinner')->hasObject('salt')
+            $this->group->getIndexFilterSet('recipe', 'dinner')->hasObject('salt')
         );
     }
 
@@ -78,7 +78,7 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
             $this->group->getIndexesWithObject('salt')
         );
         $this->assertTrue(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
     }
 
@@ -90,7 +90,7 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         $this->assertTrue($this->group->removeObjectFromIndex('salt', 'recipe'));
         $this->assertFalse($this->group->isObjectInIndex('salt', 'recipe'));
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
     }
 
@@ -102,13 +102,13 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         $this->assertTrue($this->group->removeObjectFromIndex('salt', 'recipe'));
         $this->assertFalse($this->group->isObjectInIndex('salt', 'recipe'));
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe', 'dinner')->hasObject('salt')
+            $this->group->getIndexFilterSet('recipe', 'dinner')->hasObject('salt')
         );
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe', 'dessert')->hasObject('salt')
+            $this->group->getIndexFilterSet('recipe', 'dessert')->hasObject('salt')
         );
     }
 
@@ -138,7 +138,7 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         $this->assertFalse($this->redis->exists(self::KEY_OBJECT_SALT_LOCK));
         $this->assertFalse($this->group->isObjectInIndex('salt', 'recipe'));
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
     }
 
@@ -157,13 +157,13 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
             $this->group->isObjectInIndex('salt', 'recipe')
         );
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
         $this->assertFalse(
             $this->group->isObjectInIndex('salt', 'cart')
         );
         $this->assertFalse(
-            $this->group->getPersistedSet('cart')->hasObject('salt')
+            $this->group->getIndexGlobalSet('cart')->hasObject('salt')
         );
     }
 
@@ -183,11 +183,11 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         $this->assertFalse($this->redis->exists(self::KEY_OBJECT_SALT_LOCK));
         $this->assertTrue($this->group->isObjectInIndex('salt', 'cart'));
         $this->assertTrue(
-            $this->group->getPersistedSet('cart')->hasObject('salt')
+            $this->group->getIndexGlobalSet('cart')->hasObject('salt')
         );
         $this->assertFalse($this->group->isObjectInIndex('salt', 'recipe'));
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
     }
 
@@ -201,13 +201,13 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         $this->assertFalse($this->redis->exists(self::KEY_OBJECT_SALT_LOCK));
         $this->assertTrue($this->group->isObjectInIndex('salt', 'recipe'));
         $this->assertTrue(
-            $this->group->getPersistedSet('recipe')->hasObject('salt')
+            $this->group->getIndexGlobalSet('recipe')->hasObject('salt')
         );
         $this->assertTrue(
-            $this->group->getPersistedSet('recipe', 'dinner')->hasObject('salt')
+            $this->group->getIndexFilterSet('recipe', 'dinner')->hasObject('salt')
         );
         $this->assertFalse(
-            $this->group->getPersistedSet('recipe', 'dessert')->hasObject('salt')
+            $this->group->getIndexFilterSet('recipe', 'dessert')->hasObject('salt')
         );
     }
 

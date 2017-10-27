@@ -53,6 +53,7 @@ class FilteredObjectIndexTestCase extends \PHPUnit_Framework_TestCase
         $this->redis->connect('localhost');
         $this->redis->auth('celltrak');
         $this->redis->select(16);
+        $this->redis->flushDb();
 
         $loggerMock = $this->getMockBuilder(Logger::class)
             ->disableOriginalConstructor()
