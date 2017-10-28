@@ -354,4 +354,22 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         );
     }
 
+    public function testFlushGroup()
+    {
+        $this->group->addObjectToIndex('salt', 'recipe', ['dinner']);
+        $this->group->addObjectToIndex('spam', 'recipe');
+        $this->group->addObjectToIndex('fruit', 'produce');
+        $this->group->flushGroup();
+
+        $this->assertEmpty(
+            $this->group->getIndexGlobalSet('recipe')->getObjectIds()
+        );
+        $this->assertEmpty(
+            $this->group->getIndexGlobalSet('produce')->getObjectIds()
+        );
+        $this->assertEmpty($this->group->getIndexesWithObject('salt'));
+        $this->assertEmpty($this->group->getIndexesWithObject('spam'));
+        $this->assertEmpty($this->group->getIndexesWithObject('fruit'));
+    }
+
 }

@@ -389,24 +389,11 @@ class IndexGroup
     }
 
     /**
-     * Flush all objects out of index.
-     *
-     * @param string $index
-     *
-     * @return void
-     */
-    public function flushIndex($index)
-    {
-        $indexKeys = $this->getExistingIndexKeys($index);
-        $this->redis->del($indexKeys);
-    }
-
-    /**
      * Flushes all objects from all group indexes.
      *
      * @return void
      */
-    public function flushAllIndexes()
+    public function flushGroup()
     {
         $groupKeys = $this->getExistingGroupKeys();
         $this->redis->del($groupKeys);
@@ -753,17 +740,6 @@ class IndexGroup
     {
         $groupKeyPattern = $this->qualifyKey('*');
         return $this->redis->scanForKeys($groupKeyPattern);
-    }
-
-    /**
-     * Returns Redis keys defined for index.
-     * @param string $index
-     * @return array
-     */
-    protected function getExistingIndexKeys($index)
-    {
-        $indexKeyPattern = $this->qualifyIndexKey($index, '*');
-        return $this->redis->scanForKeys($indexKeyPattern);
     }
 
     /**
