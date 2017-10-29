@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=5.4",
-        "celltrak/redis-bundle": "^1.1"
+        "celltrak/redis-bundle": "^1.1 || dev-develop"
     },
     "autoload": {
         "psr-4": { "Celltrak\\FilteredObjectIndexBundle\\": "" }
