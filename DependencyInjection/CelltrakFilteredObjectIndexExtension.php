@@ -41,7 +41,7 @@ class CelltrakFilteredObjectIndexExtension extends Extension
         array $groupConfig,
         $tenantNamespace = null
     ) {
-        $class = self::CLASS_NS . '\Component\Index\FilteredObjectIndexGroup';
+        $class = self::CLASS_NS . '\Component\Index\IndexGroup';
         $args = [
             $groupName,
             new Reference($groupConfig['redis_client']),
