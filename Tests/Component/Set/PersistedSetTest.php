@@ -26,6 +26,12 @@ class PersistedSetTest extends FilteredObjectIndexTestCase
         $this->assertEquals(count(self::PLANETS), count($this->set));
     }
 
+    public function testCountAfterLoading()
+    {
+        $this->set->getObjectIds();
+        $this->assertEquals(count(self::PLANETS), count($this->set));
+    }
+
     public function testGetObjectIds()
     {
         $objectIds = $this->set->getObjectIds();
@@ -35,6 +41,13 @@ class PersistedSetTest extends FilteredObjectIndexTestCase
 
     public function testHasObject()
     {
+        $this->assertTrue($this->set->hasObject('earth'));
+        $this->assertFalse($this->set->hasObject('pluto'));
+    }
+
+    public function testHasObjectAfterLoading()
+    {
+        $this->set->getObjectIds();
         $this->assertTrue($this->set->hasObject('earth'));
         $this->assertFalse($this->set->hasObject('pluto'));
     }
