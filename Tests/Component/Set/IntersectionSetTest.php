@@ -307,6 +307,12 @@ class IntersectionSetTest extends FilteredObjectIndexTestCase
         );
     }
 
+    public function testIsPersisted()
+    {
+        $inter = new IntersectionSet($this->redis);
+        $this->assertFalse($inter->isPersisted());
+    }
+
     /**
      * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */

@@ -78,6 +78,14 @@ class PersistedSet extends BaseSet
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function isPersisted()
+    {
+        return true;
+    }
+
+    /**
      * Returns $persistedSetKey.
      * @return string
      */

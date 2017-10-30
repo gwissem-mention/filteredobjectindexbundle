@@ -308,6 +308,27 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
         );
     }
 
+    public function testSingleGroupedSingleFilterQuery()
+    {
+        $this->group->addObjectToIndex('salt', 'recipe', ['dinner','dessert']);
+        $this->group->addObjectToIndex('sugar', 'recipe', ['dessert']);
+        $this->group->addObjectToIndex('spam', 'recipe');
+
+        $query = new GroupedFilterQuery;
+        $query->addGroupedFilters('dessert');
+
+        $resultSet = $this->group->createSetForIndexGroupedFilterQuery(
+            'recipe',
+            $query
+        );
+
+        $this->assertInstanceOf(PersistedSet::class, $resultSet);
+        $this->assertEqualArrayValues(
+            ['salt', 'sugar'],
+            $resultSet->getObjectIds()
+        );
+    }
+
     public function testSingleGroupedFilterQuery()
     {
         $this->group->addObjectToIndex('salt', 'recipe', ['dinner','dessert']);
@@ -340,7 +361,7 @@ class IndexGroupTest extends FilteredObjectIndexTestCase
 
         $query = new GroupedFilterQuery;
         $query->addGroupedFilters('dinner', 'vegetable');
-        $query->addGroupedFilters('dessert', 'fruit');
+        $query->addGroupedFilters('dessert');
 
         $resultSet = $this->group->createSetForIndexGroupedFilterQuery(
             'recipe',

@@ -345,15 +345,21 @@ class IndexGroup
 
             case 1:
                 $filters = $query->current();
-                $resultSet = $this->createUnionOfIndexFilters($index, $filters);
+                $resultSet = $this->createOptimizedUnionOfIndexFilters(
+                    $index,
+                    $filters
+                );
                 break;
 
             default:
                 $resultSet = $this->createIntersection();
 
                 foreach ($query as $filters) {
-                    $union = $this->createUnionOfIndexFilters($index, $filters);
-                    $resultSet->addSet($union);
+                    $filterSet = $this->createOptimizedUnionOfIndexFilters(
+                        $index,
+                        $filters
+                    );
+                    $resultSet->addSet($filterSet);
                 }
                 break;
         }
@@ -730,6 +736,24 @@ class IndexGroup
     ) {
         $indexFilterKey = $this->getIndexFilterSetKey($index, $filter);
         $multi->sRem($indexFilterKey, $objectId);
+    }
+
+    /**
+     * Creates UNION when more than one filter specified. Otherwise returns
+     * persisted index filter set.
+     *
+     * @param string $index
+     * @param array $filters
+     *
+     * @return UnionSet|PersistedSet
+     */
+    protected function createOptimizedUnionOfIndexFilters($index, array $filters)
+    {
+        if (count($filters) == 1) {
+            return $this->getIndexFilterSet($index, $filters[0]);
+        } else {
+            return $this->createUnionOfIndexFilters($index, $filters);
+        }
     }
 
     /**

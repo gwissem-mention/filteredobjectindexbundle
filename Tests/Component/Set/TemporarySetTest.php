@@ -49,6 +49,11 @@ class TemporarySetTest extends FilteredObjectIndexTestCase
         );
     }
 
+    public function testIsPersisted()
+    {
+        $this->assertTrue($this->set->isPersisted());
+    }
+
     public function testGetPersistedSetKey()
     {
         $this->assertEquals('planets', $this->set->getPersistedSetKey());

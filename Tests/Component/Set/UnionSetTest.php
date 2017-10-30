@@ -314,6 +314,12 @@ class UnionSetTest extends FilteredObjectIndexTestCase
         );
     }
 
+    public function testIsPersisted()
+    {
+        $union = new UnionSet($this->redis);
+        $this->assertFalse($union->isPersisted());
+    }
+
     /**
      * @expectedException Celltrak\FilteredObjectIndexBundle\Exception\NoIncludedSetsException
      */

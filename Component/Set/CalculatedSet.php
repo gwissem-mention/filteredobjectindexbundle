@@ -96,6 +96,14 @@ abstract class CalculatedSet extends BaseSet
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function isPersisted()
+    {
+        return false;
+    }
+
+    /**
      * Persists calculation result into new set.
      *
      * @param string $setKey    If not provided, will use GUID-based key.

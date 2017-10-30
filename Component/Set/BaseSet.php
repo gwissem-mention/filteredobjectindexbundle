@@ -63,6 +63,13 @@ abstract class BaseSet
     public abstract function initializeForCalculation(Pipeline $pipeline);
 
     /**
+     * Indicates whether this Set is persisted in Redis.
+     *
+     * @return boolean
+     */
+    public abstract function isPersisted();
+
+    /**
      * Creates an INTERSECTION with another Set.
      *
      * @param BaseSet $otherSet
