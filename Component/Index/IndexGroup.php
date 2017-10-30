@@ -238,7 +238,7 @@ class IndexGroup
             $this->releaseObjectLock($objectId);
         }
 
-        // Return indexes object reemoved from.
+        // Return indexes object was removed from.
         // Make sure not to include $index.
         $removedFromIndexes = array_keys($indexesWithFilters);
         return array_diff($removedFromIndexes, [$index]);
