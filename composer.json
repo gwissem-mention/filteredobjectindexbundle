@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=5.4",
-        "celltrak/redis-bundle": "^1.1 || dev-develop"
+        "celltrak/redis-bundle": "^3.4"
     },
     "autoload": {
         "psr-4": { "Celltrak\\FilteredObjectIndexBundle\\": "" }
@@ -19,7 +19,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url":  "git@bitbucket.org:celltrakdev/celltrakredisbundle.git"
+            "url":  "git@github.com:gwissem-mention/redisbundle.git"
         }
     ]
 }
